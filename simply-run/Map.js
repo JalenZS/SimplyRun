@@ -1,12 +1,16 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useMemo, useEffect, useState, useRef} from 'react';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import { Marker } from 'react-native-maps';
-import { View, Text, TouchableOpacity , StyleSheet, StatusBar} from 'react-native';
+import { View, Text, TouchableOpacity , StyleSheet, StatusBar, Alert} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
 import darkStyle from './darkStyle.json';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 export default function Map() {
   const [mode, setMode] = useState(true);
+
+  const snapPoints = useMemo(() => ['15%', '90%'], [])
 
   const mapRef = useRef(null);
 
@@ -41,7 +45,7 @@ export default function Map() {
     })();
   }, []);
 
-  changeRegionFunction = () => {
+  const changeRegionFunction = () => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -52,6 +56,10 @@ export default function Map() {
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location)
     })();
+  }
+
+  const onMarkerSelected = (marker) => {
+    Alert.alert(marker.longitude.toString())
   }
 
   return (
@@ -71,9 +79,19 @@ export default function Map() {
         }}
       >
       {markers.map((marker, index) => (
-        <Marker key={`marker-${index}`} coordinate={marker} />
+        <Marker key={`marker-${index}`} coordinate={marker} onPress={() => onMarkerSelected(marker)}/>
       ))}
       </MapView>
+      <BottomSheet snapPoints={snapPoints}>
+        <ScrollView>
+          <Text style={{fontSize: 100}}>test</Text>
+          <Text style={{fontSize: 100}}>test</Text>
+          <Text style={{fontSize: 100}}>test</Text>
+          <Text style={{fontSize: 70}}>test</Text>
+          <Text style={{fontSize: 70}}>test</Text>
+          <Text style={{fontSize: 100}}>test</Text>
+        </ScrollView>
+      </BottomSheet>
       <TouchableOpacity
         style={{
           position: 'absolute',
