@@ -1,6 +1,6 @@
 import React, {useMemo, useEffect, useState, useRef} from 'react';
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
-import { Marker } from 'react-native-maps';
+import { Marker , Callout} from 'react-native-maps';
 import { View, Text, TouchableOpacity , StyleSheet, StatusBar, Alert} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
@@ -10,9 +10,13 @@ import BottomSheet from '@gorhom/bottom-sheet';
 export default function Map() {
   const [mode, setMode] = useState(true);
 
-  const snapPoints = useMemo(() => ['15%', '90%'], [])
+  const snapPoints = useMemo(() => ['15%', '50%', '90%'], [])
 
   const mapRef = useRef(null);
+  
+  const botRef = useRef(null);
+
+  const markerRef = useRef(null);
 
   const [region, setRegion] = useState({  
     latitude: 38.606716300740565,
@@ -36,7 +40,7 @@ export default function Map() {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location)
-      setRegion({           //sets initial region to user position, if available
+      setRegion({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,     
         latitudeDelta: .01,
@@ -58,9 +62,6 @@ export default function Map() {
     })();
   }
 
-  const onMarkerSelected = (marker) => {
-    Alert.alert(marker.longitude.toString())
-  }
 
   return (
     <View style={{flex: 1}}>
@@ -77,19 +78,30 @@ export default function Map() {
         onRegionChangeComplete={() => {
           changeRegionFunction();
         }}
+        onPress = {() => botRef.current?.close()}
+        onPoiPress = {() => botRef.current?.close()}
       >
       {markers.map((marker, index) => (
-        <Marker key={`marker-${index}`} coordinate={marker} onPress={() => onMarkerSelected(marker)}/>
+        <Marker key={`marker-${index}`} coordinate={marker} onPress={() => botRef.current?.snapToIndex(1)}>
+          <Callout onPress={() => botRef.current?.snapToIndex(2)}>
+            <View>
+              <Text>
+                {marker.longitude.toString()}
+              </Text>
+            </View>
+          </Callout>
+        </Marker>
       ))}
       </MapView>
-      <BottomSheet snapPoints={snapPoints}>
+      <BottomSheet snapPoints={snapPoints} ref={botRef}>
+        <Text style={{fontSize: 40}}>title</Text>
         <ScrollView>
-          <Text style={{fontSize: 100}}>test</Text>
-          <Text style={{fontSize: 100}}>test</Text>
-          <Text style={{fontSize: 100}}>test</Text>
-          <Text style={{fontSize: 70}}>test</Text>
-          <Text style={{fontSize: 70}}>test</Text>
-          <Text style={{fontSize: 100}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
+          <Text style={{fontSize: 20}}>test</Text>
         </ScrollView>
       </BottomSheet>
       <TouchableOpacity
@@ -103,7 +115,7 @@ export default function Map() {
         }}
         //replace this with code to get current camera location
         onPress={async () => {
-          const camera = await mapRef.current.getCamera();
+          const camera = await mapRef.current?.getCamera();
           setMarkers(currentMarkers => [
             ...currentMarkers,
             {
